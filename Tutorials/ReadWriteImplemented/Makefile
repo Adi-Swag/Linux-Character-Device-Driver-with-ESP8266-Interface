@@ -10,3 +10,4 @@ all:
 	$(SIGN_FILE) sha256 $(KEY) $(CERT) char_driver.ko
 clean:
 	make -C $(KDIR) M=$(shell pwd) clean
+	rm a.out

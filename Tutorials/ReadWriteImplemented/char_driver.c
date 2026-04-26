@@ -29,6 +29,7 @@ static struct file_operations fops = {
     .read = my_read,
     .write = my_write,
     .release = my_close,
+    .llseek  = default_llseek,
 };
 
 static int my_open(struct inode *inode, struct file *filp){
@@ -62,10 +63,13 @@ static ssize_t my_write(struct file *filp, const char __user *buff, size_t len, 
         return -ENOSPC;
     }
     size_t to_write = min(len, (size_t)(MAX_BUFFER_SIZE-*off));
+    pr_info("WRITE: off before = %lld\n", *off);
+    pr_info("WRITE: to_write = %zu\n", to_write);
     if(copy_from_user(kernel_buffer[minor] + *off, buff, to_write)){
         pr_err("ERROR: Could not copy data safly from user-space to kernel-space\n");
         return -EFAULT;
     }
+
     *off += to_write;
     buffer_size[minor]=max(buffer_size[minor], (int)*off);
     if(len != to_write){
@@ -73,6 +77,8 @@ static ssize_t my_write(struct file *filp, const char __user *buff, size_t len, 
     }else{
         pr_info("Write Complete!!\n");
     }
+    pr_info("WRITE: off after = %lld\n", *off);
+    pr_info("WRITE: buffer_size = %d\n", buffer_size[minor]);
     return to_write;
 }
 
